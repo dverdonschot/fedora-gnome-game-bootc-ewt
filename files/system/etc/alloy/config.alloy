@@ -1,5 +1,5 @@
 // Host journal -> Loki log shipping, baked into the image so every
-// bootc host (um790, workstation, laptop76 after migration) ships logs
+// bootc hosts (um790, workstation, laptop76, h3plus) ship logs
 // without per-host setup. Ported from the NixOS pipeline in
 // nixos-systems-configuration/modules/alloy-loki-shipper.nix-fn.nix.
 //

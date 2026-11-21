@@ -1,7 +1,7 @@
 # fedora-gnome-game-bootc-ewt
 
-A custom Fedora 45 GNOME bootc image for the N100 game box (32 GB RAM, TV
-via HDMI, 2 USB NES pads): the same image as
+A custom Fedora 45 GNOME bootc image for the ODROID-H3+ game box (Intel N100,
+32 GB RAM, TV via HDMI, 2 USB NES pads): the same image as
 [fedora-gnome-bootc-ewt](https://github.com/dverdonschot/fedora-gnome-bootc-ewt)
 minus the AMD GPU / UM790 hardware bits, plus a retro-gaming stack (ES-DE
 frontend + RetroArch). Same package list, same forgejo-runner, same
@@ -29,8 +29,11 @@ build/
 docs/bootc-doc-index.md          # Curated bootc references + local lessons
 ```
 
-No `files/bootc/install/` drop-ins on this image — the N100 needs no
+No `files/bootc/install/` drop-ins on this image — the H3+ needs no
 hardware-specific kargs (siblings carry the AMD GPU + UM790 idle ones).
+The ODROID-H3+ (Intel N100, Intel UHD iGPU, 2x 2.5GbE RTL8125,
+HDMI 2.0 + DisplayPort) is fully supported by stock Fedora — nothing
+hardware-specific to carry.
 
 ## Gaming stack
 
@@ -124,8 +127,10 @@ Flatpaks and the nix toolchain update independently (`flatpak update`,
 > try at your own discretion.
 
 From an existing Fedora Atomic install (e.g. the current Bazzite box —
-note Bazzite is not ostree-native in the same way; a fresh
-`bootc install to-disk` is the cleaner path for this machine):
+Bazzite is rpm-ostree based, so the rebase works; layered packages and
+local `/etc` changes ride along, so check `rpm-ostree status` after
+the switch and `rpm-ostree uninstall` anything Bazzite-specific you
+do not want kept):
 
   # 1. Unsigned rebase — pulls the signing key + policy on the way.
   sudo rpm-ostree rebase ostree-unverified-registry:ghcr.io/dverdonschot/fedora-gnome-game-bootc-ewt:45

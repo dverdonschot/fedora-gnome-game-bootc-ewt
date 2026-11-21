@@ -4,9 +4,9 @@
 #
 #   - Refuses to run as root.
 #   - Verifies podman is up (podman.socket in the user systemd instance).
-#   - Verifies /dev/dri/renderD128 and /dev/kfd exist and the user is
+#   - Verifies /dev/dri/renderD128 exists and the user is
 #     in render+video groups.
-#   - Materializes ~/.config/forgejo/runners/um790/token (mode 0600,
+#   - Materializes ~/.config/forgejo/runners/h3plus/token (mode 0600,
 #     but does NOT overwrite an existing token).
 #   - Renders config.yaml from config.yaml.j2 into the user's home.
 #   - Writes the per-user DOCKER_HOST env file (pointing at the podman socket).
@@ -24,11 +24,11 @@
 # Post-run operator steps (re-cap at the end):
 #   1. Web UI:    Site Admin -> Actions -> Runners -> Create new runner
 #                 Copy the opaque registration token.
-#   2. Local:     mkdir -p ~/.config/forgejo/runners/um790
+#   2. Local:     mkdir -p ~/.config/forgejo/runners/h3plus
 #                 install -m 0600 /dev/null .../token
 #                 vi .../token   # paste token
 #   3. Local:     setup-forgejo-runner.sh --enable
-#   4. Web UI:    verify "um790-runner" appears with the right labels.
+#   4. Web UI:    verify "h3plus-runner" appears with the right labels.
 #
 # This script is designed to be safe to run repeatedly: every state-
 # changing step is gated on existence checks.
@@ -45,12 +45,12 @@ warn() { printf '%s[setup-runner]%s %s\n' "$C_WARN" "$C_RST" "$*" >&2; }
 err()  { printf '%s[setup-runner]%s %s\n' "$C_ERR"  "$C_RST" "$*" >&2; }
 
 # ---------------------------------------------------------------------------
-# Single source of truth for paths and labels. Edit here if the um790
+# Single source of truth for paths and labels. Edit here if the h3plus
 # runner's identity moves.
-RUNNER_NAME="${RUNNER_NAME:-um790-runner}"
+RUNNER_NAME="${RUNNER_NAME:-h3plus-runner}"
 RUNNER_URL="${RUNNER_URL:-https://forgejo.tail5bbc4.ts.net}"
-LABELS="${LABELS:-self-hosted,linux,x86_64,host=um790,size=large,gpu=amdgpu}"
-TOKEN_FILE_DEFAULT="${HOME}/.config/forgejo/runners/um790/token"
+LABELS="${LABELS:-self-hosted,linux,x86_64,host=h3plus,size=large}"
+TOKEN_FILE_DEFAULT="${HOME}/.config/forgejo/runners/h3plus/token"
 CONFIG_DIR="${HOME}/.config/forgejo-runner"
 CONFIG_TEMPLATE="/etc/forgejo-runner/config.yaml.j2"
 CONFIG_FILE="${CONFIG_DIR}/config.yaml"
@@ -131,8 +131,8 @@ if ! systemctl --user is-active podman.socket >/dev/null 2>&1; then
 fi
 
 # ---------------------------------------------------------------------------
-# 2. Verify GPU device access. /dev/dri/renderD128 is the render node;
-#    /dev/kfd is the KFD compute device (ROCm). Both are required.
+# 2. Verify GPU device access. /dev/dri/renderD128 is the Intel iGPU
+#    render node; jobs using /dev/dri need render+video group access.
 log "checking GPU device access"
 
 if ! getent group render >/dev/null; then
@@ -173,17 +173,6 @@ if (( ${#missing[@]} > 0 )); then
     warn "fix with: sudo usermod -aG ${missing[*]} ${USER_NAME}"
     warn "you'll need to log out + log back in for new groups to take"
     warn "effect on your user systemd instance."
-    if [[ -e /dev/kfd ]]; then
-        warn "/dev/kfd present but groups may be needed for the kernel"
-        warn "to actually let your user open it."
-    fi
-    if [[ ! -e /dev/kfd ]]; then
-        warn "/dev/kfd not present on this host. Without it, ROCm jobs"
-        warn "won't run. Check that 'rocm-runtime' and 'kernel-modules-extra'"
-        warn "are present and that the AMD amdgpu kernel module is loaded:"
-        warn "    lsmod | grep amdgpu"
-        warn "    lspci -k | grep -A3 VGA"
-    fi
     # Don't exit 1 — operator may still want the config staged without
     # GPU access, and switch to a non-GPU mode by editing
     # container.options. This is a warning, not a hard failure.
@@ -331,5 +320,5 @@ log "    systemctl --user status forgejo-runner.service"
 log "    journalctl --user -u forgejo-runner.service -f"
 log "  To verify GPU access from inside a job (after the runner runs a"
 log "  real workflow):"
-log "    - The job's container should see /dev/dri/renderD128 and /dev/kfd."
-log "    - rocminfo inside the container should report the AMD780."
+log "    - The job's container should see /dev/dri/renderD128."
+log "    - The Intel iGPU render node should be usable inside the container."

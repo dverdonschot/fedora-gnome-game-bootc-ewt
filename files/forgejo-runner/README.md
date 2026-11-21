@@ -1,4 +1,4 @@
-# Forgejo Runner on the UM790
+# Forgejo Runner on the ODROID-H3+ (Intel N100)
 
 The image ships the runner binary, a user-mode systemd unit, and a
 setup script. The unit is **not enabled** and **not started** until
@@ -11,8 +11,7 @@ you choose to authorize it.
    sudo rpm-ostree upgrade
    systemctl reboot
    ```
-   The image packages `forgejo-runner` plus the ROCm stack
-   (`rocm-runtime`, `rocm-clinfo`, `rocm-opencl`, `rocminfo`).
+   The image packages `forgejo-runner`.
 
 2. **Get a registration token from the Forgejo web UI.**
    Site Admin → Actions → Runners → **Create new runner**. Copy the
@@ -20,9 +19,9 @@ you choose to authorize it.
 
 3. **Paste the token into place.**
    ```bash
-   mkdir -p ~/.config/forgejo/runners/um790
-   install -m 0600 /dev/null ~/.config/forgejo/runners/um790/token
-   ${EDITOR:-vi} ~/.config/forgejo/runners/um790/token
+   mkdir -p ~/.config/forgejo/runners/h3plus
+   install -m 0600 /dev/null ~/.config/forgejo/runners/h3plus/token
+   ${EDITOR:-vi} ~/.config/forgejo/runners/h3plus/token
    ```
    Paste the token from step 2.
 
@@ -44,23 +43,19 @@ you choose to authorize it.
    turns the unit on. Without `--enable` it just stages files and
    bails out without starting anything.
 
-The Forgejo Runners page should now show `um790-runner` online with
-labels `self-hosted,linux,x86_64,host=um790,size=large,gpu=amdgpu`.
+The Forgejo Runners page should now show `h3plus-runner` online with
+labels `self-hosted,linux,x86_64,host=h3plus,size=large`.
 
 ## Verifying
 
 ```bash
 systemctl --user status forgejo-runner.service
 journalctl --user -u forgejo-runner.service -f
-ls /dev/dri /dev/kfd   # both should exist on the UM790
-rocminfo | head -20    # reports the AMD780 iGPU
+ls /dev/dri            # renderD128 — the Intel iGPU render node
 ```
 
 Inside a CI job (after a real workflow runs):
 - `/dev/dri/renderD128` should be visible.
-- `/dev/kfd` should be visible.
-- `rocminfo` from inside the container should report the device.
-
 If GPU access fails, see **GPU troubleshooting** below.
 
 ## What the labels mean
@@ -69,10 +64,9 @@ If GPU access fails, see **GPU troubleshooting** below.
 |---|---|
 | `self-hosted` | distinguishes from forgejo-hosted runners. |
 | `linux` | OS. |
-| `x86_64` | arch (UM790 is AMD Ryzen / Zen 4). |
-| `host=um790` | target runners from specific workflows. |
+| `x86_64` | arch (ODROID-H3+ is Intel N100). |
+| `host=h3plus` | target runners from specific workflows. |
 | `size=large` | capacity=1 today, but signals capacity-tier. |
-| `gpu=amdgpu` | runnable on any AMD iGPU or dGPU. |
 
 ## How to disable or remove
 
@@ -91,24 +85,19 @@ or podman, just re-run step 5.
 
 ## GPU troubleshooting
 
-The runner passes `--device /dev/dri --device /dev/kfd` to each
-job container. If a job reports `Cannot open /dev/kfd` or
-`rocminfo` shows no devices inside the container:
+The runner passes `--device /dev/dri` to each job container. If a
+job cannot open the render node:
 
-1. Confirm the host has `/dev/kfd`. If absent, check `lsmod | grep amdgpu`.
+1. Confirm `/dev/dri/renderD128` exists on the host.
 2. Confirm the user is in `render` and `video` groups (step 4 above).
 3. If still failing, set environment variable
    `FORGEJO_RUNNER_EXTRA_OPTIONS="--cap-add SYS_PTRACE"` in
    `~/.config/forgejo-runner/env` and re-run
    `setup-forgejo-runner.sh --enable`.
-4. As a last resort, edit the per-rendered
-   `~/.config/forgejo-runner/config.yaml` `container.options` to
-   add `--security-opt seccomp=unconfined` (ROCm needs this on
-   some kernels).
 
 ## Configuration layout
 
-- **Token** — `~/.config/forgejo/runners/um790/token` (mode 0600). The
+- **Token** — `~/.config/forgejo/runners/h3plus/token` (mode 0600). The
   script never overwrites an existing token; rotate by deleting it
   and re-running the script.
 - **Rendered config** — `~/.config/forgejo-runner/config.yaml`,
@@ -128,7 +117,6 @@ job container. If a job reports `Cannot open /dev/kfd` or
 - The registration token is sensitive: anyone with it can register
   a runner on this Forgejo instance. Treat the file like an
   `~/.ssh/id_*` key.
-- The runner's container options pass `--device /dev/dri --device
-  /dev/kfd` (privileged=false), which is the minimum required for
-  AMD GPU access. A malicious workflow gets GPU compute but not
-  arbitrary host privileges.
+- The runner's container options pass `--device /dev/dri`
+  (privileged=false), the minimum needed for GPU access. A malicious
+  workflow gets the render node but not arbitrary host privileges.

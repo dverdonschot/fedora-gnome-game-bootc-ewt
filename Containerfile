@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile-upstream:1.7
 #
-# fedora-gnome-game-bootc-ewt — Fedora Atomic GNOME image for the N100 game box:
+# fedora-gnome-game-bootc-ewt — Fedora Atomic GNOME image for the ODROID-H3+ game box (Intel N100):
 #   the fedora-gnome-bootc-ewt package set minus the AMD/UM790 hardware bits,
 #   plus the retro-gaming stack (ES-DE + RetroArch flatpaks, ES-DE autostart).
 #
@@ -146,7 +146,7 @@ COPY files/forgejo-runner/forgejo-runner.service /usr/lib/systemd/user/forgejo-r
 COPY files/scripts/setup-libvirt.sh /usr/local/bin/setup-libvirt.sh
 
 # ---- Install-time kargs ----
-# None on this image: the N100 Intel iGPU needs no hardware-specific kargs
+# None on this image: the H3+ Intel iGPU needs no hardware-specific kargs
 # (the sibling images carry AMD GPU + UM790 idle drop-ins). If any are ever
 # needed they go in /usr/lib/bootc/install/*.toml, applied at `bootc install`
 # time only (upstream bootc docs), never via rpm-ostree kargs in a build.
@@ -219,6 +219,6 @@ COPY build/flatpak-list.txt /usr/share/fedora-gnome-game-bootc-ewt/flatpak-list.
 RUN bootc container lint ${LINT_SKIP}
 
 LABEL org.opencontainers.image.title="fedora-gnome-game-bootc-ewt" \
-      org.opencontainers.image.description="Fedora 45 GNOME bootc image for the N100 game box (ES-DE + RetroArch)" \
+      org.opencontainers.image.description="Fedora 45 GNOME bootc image for the ODROID-H3+ game box (ES-DE + RetroArch)" \
       org.opencontainers.image.source="https://github.com/dverdonschot/fedora-gnome-game-bootc-ewt" \
       org.opencontainers.image.licenses="Apache-2.0"

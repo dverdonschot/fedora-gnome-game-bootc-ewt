@@ -7,9 +7,9 @@
 # /var/tmp/forgejo-runner/.runner (token + URL) at register time; the
 # daemon reads it from there at startup.
 #
-# v1 differences vs. odroid:
-#   - container.options: passes `--device /dev/dri --device /dev/kfd`
-#     so jobs can drive the AMD780 iGPU.
+# v1 differences vs. the hosts/odroid template:
+#   - container.options: passes `--device /dev/dri` only — Intel iGPU
+#     render node; /dev/kfd (AMD/ROCm compute) does not exist here.
 #   - host.workdir_parent is on /var/tmp because Fedora Atomic's /var
 #     is the writable layer (not /var/lib/forge-runner — that dir
 #     would not survive an rpm-ostree rollback).
@@ -33,13 +33,11 @@ container:
   force_pull:     false
   runtime:        ""
   workdir_parent: /workspace
-  # --device passes /dev/dri (render node) and /dev/kfd (KFD compute)
-  # into the container. NOT --privileged: privileged=false keeps the
-  # container unprivileged except for these two devices. KFD requires
-  # the user to be in the `render` and `video` groups (verified by
-  # setup-forgejo-runner.sh) and may need a udev rule for /dev/kfd
-  # on the host; flagged as a post-deploy smoke-test item.
-  options:        "--device /dev/dri --device /dev/kfd"
+  # --device passes /dev/dri (Intel iGPU render node) into the
+  # container. NOT --privileged: privileged=false keeps the container
+  # unprivileged except for this device. Requires the user in the
+  # `render` and `video` groups (verified by setup-forgejo-runner.sh).
+  options:        "--device /dev/dri"
 
 host:
   workdir_parent: /var/tmp/forgejo-runner/work

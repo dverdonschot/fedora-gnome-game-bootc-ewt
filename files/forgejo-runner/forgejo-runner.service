@@ -1,5 +1,5 @@
 [Unit]
-Description=Forgejo Actions runner daemon (UM790)
+Description=Forgejo Actions runner daemon (ODROID-H3+)
 Documentation=https://forgejo.tail5bbc4.ts.net
 # Image-baked default: NOT enabled, NOT started.
 # Per the user's spec ("install + configure, not start, not
