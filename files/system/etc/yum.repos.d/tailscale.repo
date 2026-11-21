@@ -1,0 +1,13 @@
+# Tailscale RPM repo — sole source for the tailscale package. Fedora's own
+# repos lag upstream badly (F45 shipped 1.102.5 while 1.104.x was current and
+# CVE fixes required >= 1.104.4); pkgs.tailscale.com stable tracks releases
+# within days. The file ships on the system too, so `bootc update` / dnf
+# keeps picking up new Tailscale releases on every upgrade.
+[tailscale-stable]
+name=Tailscale stable
+baseurl=https://pkgs.tailscale.com/stable/fedora/$basearch
+enabled=1
+type=rpm
+repo_gpgcheck=1
+gpgcheck=1
+gpgkey=https://pkgs.tailscale.com/stable/fedora/repo.gpg

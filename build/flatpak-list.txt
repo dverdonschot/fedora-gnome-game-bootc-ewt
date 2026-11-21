@@ -1,0 +1,14 @@
+# System flatpaks — single source of truth, installed by
+# build/install-flatpaks.sh (idempotent; NOT baked into the bootc image,
+# see Containerfile "Flatpaks" section).
+# Standard desktop set — same as fedora-gnome-bootc-ewt / cosmic default-flatpaks.
+org.mozilla.firefox
+com.github.tchx84.Flatseal
+io.freetubeapp.FreeTube
+dev.zed.Zed
+io.github.zen_browser.zen
+# Gaming stack (this image only): ES-DE is the TV-friendly game library
+# frontend, RetroArch the emulator engine it launches (libretro cores).
+# ES-DE autostarts via files/system/etc/xdg/autostart/es-de.desktop.
+org.es_de.emulationstation
+org.libretro.RetroArch

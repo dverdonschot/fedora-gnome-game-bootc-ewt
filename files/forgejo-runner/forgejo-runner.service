@@ -1,0 +1,50 @@
+[Unit]
+Description=Forgejo Actions runner daemon (UM790)
+Documentation=https://forgejo.tail5bbc4.ts.net
+# Image-baked default: NOT enabled, NOT started.
+# Per the user's spec ("install + configure, not start, not
+# authorize"). The operator runs /usr/local/bin/setup-forgejo-runner.sh
+# which:
+#   1. Verifies podman.socket is up + groups render/video present.
+#   2. Materializes the per-user token + config files.
+#   3. Runs `systemctl --user enable --now forgejo-runner.service`.
+#
+# Until then, this unit is dormant. Systemd without [Install] = nothing
+# auto-starts it. `systemctl --user enable forgejo-runner.service` adds
+# a symlink in the user's wanted-by directory; this is what flips it on.
+
+[Service]
+Type=simple
+# User-mode systemd units implicitly run as the calling user. No
+# User=/Group= required. (Contrast with system-mode units, which would
+# need them.)
+WorkingDirectory=%h/.local/share/forgejo-runner
+
+# Wait for the per-user podman socket before starting the daemon.
+# podman.socket activates /run/user/<UID>/podman/podman.sock; the
+# runner's DOCKER_HOST (in the env file) points at the same path.
+# `--wait-podman` mode is a no-op except for polling — idempotent.
+ExecStartPre=/usr/local/bin/setup-forgejo-runner.sh --wait-podman
+ExecStart=/usr/bin/forgejo-runner daemon --config %h/.config/forgejo-runner/config.yaml
+
+# DOCKER_HOST must be exported BEFORE the daemon reads config.yaml.
+# The setup script writes ~/.config/forgejo-runner/env with the
+# DOCKER_HOST line pointing at the per-user podman socket.
+EnvironmentFile=-%h/.config/forgejo-runner/env
+
+Restart=on-failure
+RestartSec=20s
+TimeoutStartSec=180
+
+# Hardening (subset — rootless podman is already hardened at its
+# daemon). ProtectSystem=full keeps the global FS read-only except
+# /dev /proc /sys; we let the daemon write to /var/tmp/forgejo-runner
+# via RunTimeDirectory-style via ProtectSystem=full alone; for v1 we
+# accept that /etc is read-only and the runner can never write there.
+ProtectSystem=full
+ProtectHome=read-only
+PrivateTmp=true
+# AF_UNIX needed for the podman socket; AF_INET* for Forgejo API +
+# artifact transfer; AF_NETLINK needed by Podman for namespace setup.
+NoNewPrivileges=true
+UMask=0077

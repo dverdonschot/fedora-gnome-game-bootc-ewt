@@ -1,0 +1,15 @@
+# Local build artefacts (we keep the script files in the repo)
+/build/*.tar
+/build/*.tar.gz
+/build/*.oci
+/build/*.qcow2
+
+# Secrets — never commit
+cosign.key
+cosign.private
+
+# Editor / agent state
+.claude/
+.idea/
+.vscode/
+*.swp

@@ -1,0 +1,75 @@
+---
+name: Build and push image
+on:
+  pull_request:
+    branches:
+      - main
+  schedule:
+    - cron: '30 04 * * 1' # weekly Monday rebuild — pulls latest silverblue:45
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+  workflow_dispatch:
+
+env:
+  IMAGE_REGISTRY: ghcr.io/dverdonschot
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build_push:
+    name: Build and push image
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+      id-token: write # cosign keyless signing
+
+    steps:
+      - name: Maximize build space
+        uses: ublue-os/remove-unwanted-software@695eb75bc387dbcd9685a8e72d23439d8686cba6
+
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+
+      # GitHub runners are rootless podman users. The Containerfile is written
+      # for that path (chroot isolation, no tmpfs /tmp, LINT_SKIP default).
+      # buildah's local layer cache makes the --push invocation below cheap.
+      # Full lint on CI: LINT_SKIP= overrides the host default.
+      - name: Build image
+        env:
+          LINT_SKIP: ""
+        run: |
+          ./build/build.sh
+
+      # build.sh handles non-interactive `podman login` itself; login-action's
+      # docker config.json is not read by podman.
+      - name: Push image
+        if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+        env:
+          REGISTRY_USER: ${{ github.actor }}
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./build/build.sh --push
+
+      # Keyless signing: no repository secret needed. Clients verify with
+      # `ostree-image-signed:` after `cosign initialize`.
+      - name: Install cosign
+        if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+        uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532 # v4.1.3
+
+      - name: Sign image (keyless)
+        if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+        env:
+          IMAGE: ghcr.io/dverdonschot/fedora-gnome-game-bootc-ewt
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cosign login ghcr.io -u "${{ github.actor }}" -p "${GITHUB_TOKEN}"
+          digest=$(skopeo inspect --format '{{.Digest}}' docker://${IMAGE}:45)
+          cosign sign -y --new-bundle-format=false --use-signing-config=false \
+            "${IMAGE}@${digest}"

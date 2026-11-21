@@ -1,0 +1,6 @@
+# Background image updates: rpm-ostreed-automatic.timer runs `rpm-ostree
+# upgrade` under the policy in /etc/rpm-ostreed.conf (stage), so the next
+# deployment is downloaded while the machine is on and boots next power-on.
+# Preset matching is lexicographic and first-match-wins, so this 80- file
+# beats Fedora's 90-systemd.preset catchall `disable *`.
+enable rpm-ostreed-automatic.timer

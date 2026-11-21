@@ -1,0 +1,2 @@
+# Alloy ships the host journal to Loki (config in /etc/alloy/config.alloy).
+enable alloy.service

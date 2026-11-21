@@ -1,0 +1,11 @@
+# Grafana RPM repo — sole source for the alloy package (log shipping
+# agent shipped to Loki; see /etc/alloy/config.alloy).
+[grafana]
+name=grafana
+baseurl=https://rpm.grafana.com
+repo_gpgcheck=1
+enabled=1
+gpgcheck=1
+gpgkey=https://rpm.grafana.com/gpg.key
+exclude=*beta*
+sslverify=1

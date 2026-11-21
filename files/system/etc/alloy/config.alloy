@@ -1,0 +1,45 @@
+// Host journal -> Loki log shipping, baked into the image so every
+// bootc host (um790, workstation, laptop76 after migration) ships logs
+// without per-host setup. Ported from the NixOS pipeline in
+// nixos-systems-configuration/modules/alloy-loki-shipper.nix-fn.nix.
+//
+// The host label comes from constants.hostname, so this one file is
+// correct on every machine the image lands on.
+//
+// The journal priority is shipped as `priority`, deliberately NOT as
+// `level`: shipping it as `level` would shadow Loki's content-based
+// severity detection (discover_log_levels) and render every line,
+// fatals included, as info. See the NixOS module comment for the full
+// post-mortem.
+loki.relabel "journal_unit_priority" {
+	forward_to = []
+
+	rule {
+		source_labels = ["__journal__systemd_unit"]
+		target_label  = "unit"
+	}
+
+	rule {
+		source_labels = ["__journal_priority"]
+		target_label  = "priority"
+	}
+}
+
+loki.process "journal" {
+	forward_to = [loki.write.loki.receiver]
+}
+
+loki.source.journal "systemd" {
+	forward_to    = [loki.process.journal.receiver]
+	relabel_rules = loki.relabel.journal_unit_priority.rules
+	labels = {
+		job  = "systemd-journal",
+		host = constants.hostname,
+	}
+}
+
+loki.write "loki" {
+	endpoint {
+		url = "https://loki.tail5bbc4.ts.net/loki/api/v1/push"
+	}
+}
