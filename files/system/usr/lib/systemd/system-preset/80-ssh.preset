@@ -1,0 +1,3 @@
+# Remote access: the game box is headless at the TV, so SSH must be on.
+# Fedora's 90-systemd.preset disables sshd by default; this 80- file wins.
+enable sshd.service
