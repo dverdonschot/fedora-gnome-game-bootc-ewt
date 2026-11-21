@@ -12,3 +12,8 @@ io.github.zen_browser.zen
 # ES-DE autostarts via files/system/etc/xdg/autostart/es-de.desktop.
 org.es_de.emulationstation
 org.libretro.RetroArch
+# Screen casting: GNOME Network Displays (Miracast + Chromecast).
+# Note: media-casting to a receiver app works differently from desktop
+# mirroring — third-party Cast receiver apps on a Fire TV Stick may be
+# discoverable but reject the live mirror session. Test on first boot.
+org.gnome.NetworkDisplays

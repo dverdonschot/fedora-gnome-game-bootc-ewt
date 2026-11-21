@@ -54,6 +54,16 @@ hardware-specific to carry.
   sudo rm /etc/xdg/autostart/es-de.desktop    # /etc is writable on bootc
   ```
 
+### Casting (optional)
+
+`org.gnome.NetworkDisplays` mirrors the desktop to a Cast/Miracast display.
+The Fire TV Stick needs a Cast-receiver app for discovery; whether such an
+app accepts GNOME's live desktop-mirror session (vs. media casts only) is
+untested — see the manifest comment. Miracast is out on this box (no Wi-Fi
+radio). Mirrored casting is for desktop use; gaming stays on the HDMI
+cable, or use Sunshine (host) + Moonlight on the stick for interactive
+low-latency control.
+
 ### ROMs and BIOS are user data, not image content
 
 The ROM library lives outside the image (odroid share or local copy —
@@ -164,7 +174,8 @@ RetroArch if buttons are swapped.
 
 ## Flatpaks
 
-Firefox, Flatseal, FreeTube, Zed, Zen, **ES-DE, RetroArch** — **not baked
+Firefox, Flatseal, FreeTube, Zed, Zen, **ES-DE, RetroArch, Network
+Displays** — **not baked
 into the image**. Flatpaks live in `/var`, which bootc only seeds from the
 image on first install and never touches on upgrade: a baked copy would be
 frozen at build-day versions and wouldn't arrive on a rebase either.
