@@ -189,7 +189,9 @@ rebase/install, run once as your user (idempotent):
 ## Nix
 
 The image ships the Fedora `nix` + `nix-daemon` packages with
-`nix-daemon.socket` preset-enabled; the user-level toolchain is declared in
+`nix-daemon.service` preset-enabled (the service binds its own socket — the
+`nix-daemon.socket` unit is deliberately not enabled, it only collides with
+the running daemon); the user-level toolchain is declared in
 [`nix/apps.nix`](nix/apps.nix) and applied after rebase:
 
 ```bash

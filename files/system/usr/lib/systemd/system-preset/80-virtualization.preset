@@ -7,7 +7,9 @@ enable virtqemud.socket
 # at boot). Fedora's 90-systemd.preset disables-by-default, so preset is a
 # no-op for units not named in a preset file.
 enable nix.mount
-enable nix-daemon.socket
+# nix-daemon.service runs standalone and binds its own socket; the
+# nix-daemon.socket unit would only collide with it (Address already in
+# use) — preset-enable the service, not the socket.
 enable nix-daemon.service
 
 # Enable podman socket for Docker-compatible API access

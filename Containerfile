@@ -162,7 +162,7 @@ COPY files/scripts/setup-libvirt.sh /usr/local/bin/setup-libvirt.sh
 # No || true here: if a unit name changes upstream, fail the build loudly
 # instead of shipping a silently disabled daemon.
 RUN systemctl preset libvirtd.service libvirtd.socket libvirtd-ro.socket libvirtd-admin.socket \
-        nix-daemon.socket nix-daemon.service tailscaled.service \
+        nix-daemon.service tailscaled.service \
         alloy.service \
         rpm-ostreed-automatic.timer && \
     systemctl enable node_exporter.service && \

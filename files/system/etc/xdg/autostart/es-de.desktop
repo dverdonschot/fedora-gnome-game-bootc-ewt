@@ -2,7 +2,7 @@
 Type=Application
 Name=ES-DE Game Frontend
 Comment=Retro game library launcher (EmulationStation Desktop Edition)
-Exec=flatpak run org.es_de.emulationstation
+Exec=/var/lib/es-de/ES-DE_x64.AppImage
 Terminal=false
 NoDisplay=true
 X-GNOME-Autostart-enabled=true
