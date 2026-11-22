@@ -6,6 +6,7 @@ enable virtqemud.socket
 # Enable nix-daemon (multi-user nix; nixbld users come from sysusers.d/nix.conf
 # at boot). Fedora's 90-systemd.preset disables-by-default, so preset is a
 # no-op for units not named in a preset file.
+enable nix.mount
 enable nix-daemon.socket
 enable nix-daemon.service
 

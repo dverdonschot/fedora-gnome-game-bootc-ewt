@@ -198,6 +198,25 @@ nix-channel --update
 nix profile install --file nix/apps.nix
 ```
 
+**Writable store.** On an ostree deployment `/nix` is read-only, so the
+image ships a `nix.mount` unit that bind-mounts `/var/nix` (the persistent
+`/var` subvolume) over it, enabled via preset *before* the nix units. Two
+Fedora-packaging gotchas this solves:
+
+- `nix-daemon.service` gates on
+  `ConditionPathIsReadWrite=/nix/var/nix/daemon-socket` — without the
+  mount the condition is unmet at every boot and the daemon silently
+  skips, while `systemctl is-enabled` still says *enabled*.
+- The `daemon-socket` directory itself is created by a tmpfiles entry in
+  this tree (`usr/lib/tmpfiles.d/nix-daemon-socket.conf`); nothing in the
+  Fedora packaging creates it.
+
+One-time bootstrap of the store DB on a fresh install:
+
+```bash
+sudo nix-store --init
+```
+
 **Rule of thumb for where a package lives:** `nix/apps.nix` — pure
 user-space CLI tools; `Containerfile` — anything needing kernel modules, a
 system daemon, or a preset unit.
@@ -208,7 +227,9 @@ system daemon, or a preset unit.
   `podman-docker` shim.
 - Forgejo Actions runner pre-staged (operator runs setup script).
 - libvirt/KVM preset (`80-virtualization.preset`), virt-manager, qemu-kvm.
-- Nix + nix-daemon, user-level toolchain in `nix/apps.nix`.
+- Nix + nix-daemon with a writable store (`nix.mount` bind of `/var/nix`
+  over the read-only deployment `/nix`), user-level toolchain in
+  `nix/apps.nix`.
 - `node_exporter` enabled with the systemd collector drop-in (feeds the
   Container Health Grafana dashboard).
 - Log shipping baked in: `alloy` tails the persistent host journal to the
