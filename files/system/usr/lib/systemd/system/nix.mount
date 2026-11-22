@@ -10,6 +10,12 @@
 #   - The daemon-socket directory itself is created by
 #     usr/lib/tmpfiles.d/nix-daemon-socket.conf in this tree.
 #
+# NO After/Requires=local-fs.target here: systemd pulls every mount whose
+# Where= is a system path into local-fs.target on its own, so those lines
+# create an ordering cycle (local-fs -> nix.mount -> local-fs) and systemd
+# deletes the mount job at boot. Bind mounts get their source-mount
+# ordering automatically from What=/var/nix.
+#
 # Verified live on the N100 game box (see README "Nix"): with this unit
 # active, nix-store --init + nix-daemon start and `nix store ping`
 # reports Store URL: daemon.
@@ -17,8 +23,6 @@
 [Unit]
 Description=Writable nix store (bind /var/nix over the read-only deployment /nix)
 Documentation=man:nix-store(1)
-Requires=local-fs.target
-After=local-fs.target
 Before=nix-daemon.socket nix-daemon.service
 
 [Mount]
