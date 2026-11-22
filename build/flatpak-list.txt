@@ -10,7 +10,8 @@ io.github.zen_browser.zen
 # Gaming stack (this image only): ES-DE is the TV-friendly game library
 # frontend, RetroArch the emulator engine it launches (libretro cores).
 # ES-DE autostarts via files/system/etc/xdg/autostart/es-de.desktop.
-org.es_de.emulationstation
+# flathub id renamed from org.es_de.emulationstation(-de) to org.es_de.frontend
+org.es_de.frontend
 org.libretro.RetroArch
 # Screen casting: GNOME Network Displays (Miracast + Chromecast).
 # Note: media-casting to a receiver app works differently from desktop
