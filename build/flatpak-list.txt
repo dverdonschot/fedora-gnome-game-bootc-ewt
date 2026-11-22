@@ -9,11 +9,12 @@ dev.zed.Zed
 io.github.zen_browser.zen
 # Gaming stack (this image only): ES-DE is the TV-friendly game library
 # frontend, RetroArch the emulator engine it launches (libretro cores).
-# ES-DE is NOT on flathub — it ships as an AppImage from es-de.org; the
-# autostart entry (es-de.desktop) Exec's /var/lib/es-de/ES-DE_x64.AppImage,
-# which is machine data: install it once per box with
+# ES-DE is NOT on flathub — it ships as an AppImage from es-de.org; install
+# it once per box with:
 #   sudo install -Dm755 <ES-DE_x64.AppImage> /var/lib/es-de/ES-DE_x64.AppImage
-# ES-DE autostarts via files/system/etc/xdg/autostart/es-de.desktop.
+# Launched from the app grid (usr/local/share/applications/es-de.desktop).
+# Autostart intentionally disabled (kept as es-de.desktop.disabled for
+# reference) — user prefers launching manually.
 org.libretro.RetroArch
 # Screen casting: GNOME Network Displays (Miracast + Chromecast).
 # Note: media-casting to a receiver app works differently from desktop
