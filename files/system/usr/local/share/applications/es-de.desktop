@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=ES-DE Game Frontend
+GenericName=Retro game library launcher
+Comment=EmulationStation Desktop Edition
+# The AppImage itself is machine data (not in the image); see
+# build/flatpak-list.txt for the one-time install command.
+Exec=/var/lib/es-de/ES-DE_x64.AppImage
+Terminal=false
+Icon=applications-games
+Categories=Game;Emulator;
+Keywords=games;retro;emulation;
